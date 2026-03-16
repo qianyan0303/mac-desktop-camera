@@ -29,6 +29,12 @@ const api = {
   // 设置窗口尺寸（size: 主维度, aspectRatio: 比例数值）
   setWindowSize: (size: number, aspectRatio: number) =>
     ipcRenderer.send('setWindowSize', size, aspectRatio),
+  // 长按拖拽窗口
+  startWindowDrag: (screenX: number, screenY: number) =>
+    ipcRenderer.send('startWindowDrag', screenX, screenY),
+  updateWindowDrag: (screenX: number, screenY: number) =>
+    ipcRenderer.send('updateWindowDrag', screenX, screenY),
+  endWindowDrag: () => ipcRenderer.send('endWindowDrag'),
   //打开新摄像头
   openNewCamera: () => {
     ipcRenderer.send('openNewWindow')

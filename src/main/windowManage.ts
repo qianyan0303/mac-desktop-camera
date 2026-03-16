@@ -56,6 +56,22 @@ ipcMain.on(
   }
 )
 
+// 长按拖拽窗口
+let dragOffset: { x: number; y: number } | null = null
+ipcMain.on('startWindowDrag', (event: Electron.IpcMainEvent, screenX: number, screenY: number) => {
+  const win = BrowserWindow.fromWebContents(event.sender)!
+  const [x, y] = win.getPosition()
+  dragOffset = { x: screenX - x, y: screenY - y }
+})
+ipcMain.on('updateWindowDrag', (event: Electron.IpcMainEvent, screenX: number, screenY: number) => {
+  if (!dragOffset) return
+  const win = BrowserWindow.fromWebContents(event.sender)!
+  win.setPosition(Math.round(screenX - dragOffset.x), Math.round(screenY - dragOffset.y))
+})
+ipcMain.on('endWindowDrag', () => {
+  dragOffset = null
+})
+
 //全屏切换
 ipcMain.on('toggleFullscreen', (event: Electron.IpcMainEvent) => {
   const win = BrowserWindow.fromWebContents(event.sender)!

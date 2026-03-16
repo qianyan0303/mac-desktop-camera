@@ -1,12 +1,51 @@
 <script setup lang="ts">
 import { useConfigStore } from '@renderer/stores/useConfigStore'
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 
 const { config } = useConfigStore()
+const LONG_PRESS_MS = 300
+let pressTimer: ReturnType<typeof setTimeout> | null = null
+const isDragging = ref(false)
+const lastPos = ref({ x: 0, y: 0 })
 
 function togglePrivacy() {
   config.isPrivacyMode = !config.isPrivacyMode
 }
+
+function onPointerDown(e: PointerEvent) {
+  if (isDragging.value) return
+  ;(e.currentTarget as HTMLElement)?.setPointerCapture(e.pointerId)
+  lastPos.value = { x: e.screenX, y: e.screenY }
+  pressTimer = setTimeout(() => {
+    pressTimer = null
+    isDragging.value = true
+    window.api.startWindowDrag(lastPos.value.x, lastPos.value.y)
+  }, LONG_PRESS_MS)
+}
+
+function onPointerMove(e: PointerEvent) {
+  lastPos.value = { x: e.screenX, y: e.screenY }
+  if (isDragging.value) {
+    window.api.updateWindowDrag(e.screenX, e.screenY)
+  }
+}
+
+function onPointerUp() {
+  if (pressTimer) {
+    clearTimeout(pressTimer)
+    pressTimer = null
+    togglePrivacy()
+  } else if (isDragging.value) {
+    isDragging.value = false
+    window.api.endWindowDrag()
+  }
+}
+
+
+onUnmounted(() => {
+  if (pressTimer) clearTimeout(pressTimer)
+  if (isDragging.value) window.api.endWindowDrag()
+})
 
 async function getVideoConstraints(): Promise<MediaStreamConstraints> {
   let deviceId = config.deviceId
@@ -49,7 +88,7 @@ onMounted(async () => {
 </script>
 <template>
   <main
-    class="w-screen h-screen overflow-hidden relative z-0 flex flex-col"
+    class="nodrag w-screen h-screen overflow-hidden relative z-0 cursor-pointer"
     :class="{
       'aspect-square': config.aspectRatioMode === '1:1',
       'aspect-video': config.aspectRatioMode === '16:9',
@@ -58,20 +97,14 @@ onMounted(async () => {
     :style="`border:solid ${config.borderWidth}px ${config.borderColor};border-radius:${
       config.rounded ? '50%' : config.borderRadius + 'px'
     }`"
+    @pointerdown="onPointerDown"
+    @pointermove="onPointerMove"
+    @pointerup="onPointerUp"
+    @pointerleave="onPointerUp"
+    @pointercancel="onPointerUp"
   >
-    <!-- 顶部拖拽条 -->
-    <div
-      class="drag h-6 flex-shrink-0"
-      :style="{
-        borderTopLeftRadius: config.rounded ? '9999px' : config.borderRadius + 'px',
-        borderTopRightRadius: config.rounded ? '9999px' : config.borderRadius + 'px'
-      }"
-    />
-    <!-- 画面区域：点击切换隐私模式 -->
-    <div
-      class="nodrag flex-1 relative cursor-pointer overflow-hidden"
-      @click="togglePrivacy"
-    >
+    <!-- 画面区域：单点切换隐私，长按拖拽 -->
+    <div class="absolute inset-0 overflow-hidden">
       <div
         v-if="!config.isPrivacyMode"
         class="border-4 border-transparent absolute inset-0 bg-slate-700 text-white font-light text-base flex flex-col justify-center items-center z-0"
