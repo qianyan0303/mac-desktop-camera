@@ -1,6 +1,6 @@
 # 桌面摄像头
 
-> 向军大叔每晚八点在 [抖音](https://www.douyin.com/user/MS4wLjABAAAAz0TXiTnI3HAmxDEfBrHItlViAwC6rsxJL6_GIHFA2Ho) 和 [bilibili](https://space.bilibili.com/282190994) 直播
+> forked from houdunwang/camera 向军大叔 [抖音](https://www.douyin.com/user/MS4wLjABAAAAz0TXiTnI3HAmxDEfBrHItlViAwC6rsxJL6_GIHFA2Ho) 和 [bilibili](https://space.bilibili.com/282190994) 
 
 基于 Electron + Vue3 + Vite 开发的桌面摄像头软件，方便直播录课、短视频拍摄等场景。
 
@@ -16,7 +16,6 @@
 
 ## 软件下载
 
-可从 [Github Releases](https://github.com/houdunwang/camera/releases) 或 [软件官网](https://app.houdunren.com/) 下载。
 
 ## 开发指引
 
