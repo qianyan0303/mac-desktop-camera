@@ -15,7 +15,7 @@
 - Windows、Mac、Linux 多系统支持
 
 ## 软件下载
-
+https://wwaoz.lanzoum.com/ie8qW3ks828f
 
 ## 开发指引
 
