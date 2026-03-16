@@ -1,57 +1,115 @@
 # 桌面摄像头
 
-> 向军大叔每晚八点在 [抖音](https://www.douyin.com/user/MS4wLjABAAAAz0TXiTnI3HAmxDEfBrHItlViAwC6rsxJL6_GIHFA2Ho) 和 [bilibli](https://space.bilibili.com/282190994) 直播
+> 向军大叔每晚八点在 [抖音](https://www.douyin.com/user/MS4wLjABAAAAz0TXiTnI3HAmxDEfBrHItlViAwC6rsxJL6_GIHFA2Ho) 和 [bilibili](https://space.bilibili.com/282190994) 直播
 
-<img src="./assets/xj.jpg" alt="xj-small" style="border-radius: 10px;object-fit: cover;height:200px;" />
-
-基于 Electron+Vue3+Vite 开发的桌面摄像头软件，方便直播录课、短视频拍摄等场景。
+基于 Electron + Vue3 + Vite 开发的桌面摄像头软件，方便直播录课、短视频拍摄等场景。
 
 ## 功能特点
 
 - 支持摄像头切换
 - 摄像头窗口置顶
-- 配置边框宽度
-- 定义边框颜色
+- 配置边框宽度与颜色
 - 支持圆角与横屏显示
-- Window、Mac、Linux 多系统支持
+- **窗口大小拖动调节**（底部菜单滑块）
+- 画面镜像、全屏
+- Windows、Mac、Linux 多系统支持
 
 ## 软件下载
 
-你可以从 [Github](https://github.com/houdunwang/camera/releases) 或 [软件官网](https://app.houdunren.com/) 下载软件。
+可从 [Github Releases](https://github.com/houdunwang/camera/releases) 或 [软件官网](https://app.houdunren.com/) 下载。
 
-你也可以 clone 项目后，在本地根据自行编译软件使用，请进入项目根目录执行以下命令，你也可以在项目的 package.json 文件中看到更多命令。
+## 开发指引
+
+### 环境要求
+
+| 依赖 | 版本 |
+|------|------|
+| Node.js | 18+ |
+| pnpm | 8+ |
+
+### 项目结构
 
 ```
-# 安装依赖包
-pnpm i
-
-# Mac系统编译命令
-pnpm build:mac-x86
-pnpm build:mac-arm64
-
-# Window系统编译命令
-pnpm build:win
-
-# Linux系统编译命令
-pnpm build:linux
+src/
+├── main/           # Electron 主进程
+│   ├── index.ts    # 入口
+│   ├── ipcMain.ts  # IPC 通信
+│   ├── windowManage.ts
+│   └── ...
+├── preload/        # 预加载脚本
+│   └── index.ts
+└── renderer/       # Vue 渲染进程
+    └── src/
+        ├── views/      # 页面
+        ├── components/ # 组件
+        └── stores/     # Pinia 状态
 ```
 
-如果你在编译过程中出错失败，一般是你没有正确设置 electron 或 electron-build 镜像，请访问[后盾人文档库](https://doc.houdunren.com/%E7%B3%BB%E7%BB%9F%E8%AF%BE%E7%A8%8B/electron/1%20%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86.html)正确的设置国内镜像。
+### 启动命令
 
-## 效果展示
+```bash
+# 安装依赖（首次需执行）
+pnpm install
 
-摄像头角效果
+# 开发模式（热重载，Vite 开发服务器 + Electron）
+pnpm dev
 
-<img src="./assets/image-20230303145607103.jpeg" alt="image-20230303145607103"  />
+# 预览模式（运行打包后的应用，需先 build）
+pnpm start
+```
 
-支持横屏样式
+### 开发相关命令
 
-![image-20230308152129044](./assets/image-20230308152129044.jpeg)
+| 命令 | 说明 |
+|------|------|
+| `pnpm dev` | 开发模式，支持热重载 |
+| `pnpm start` | 预览打包后的应用 |
+| `pnpm build` | 类型检查 + 构建（仅编译，不打包） |
+| `pnpm typecheck` | 运行 TypeScript 类型检查 |
+| `pnpm lint` | ESLint 检查并自动修复 |
+| `pnpm format` | Prettier 格式化代码 |
 
-支持多种参数的配置
+### 构建打包命令
 
-<img src="./assets/image-20230303145726417.jpeg" alt="image-20230303145726417"  />
+| 命令 | 说明 |
+|------|------|
+| `pnpm build:mac` | Mac 包（当前架构） |
+| `pnpm build:mac-arm` | Mac ARM64（Apple Silicon） |
+| `pnpm build:mac-mas` | Mac App Store 发布包 |
+| `pnpm build:win` | Windows 安装包 |
+| `pnpm build:linux` | Linux 包（AppImage / snap / deb） |
 
-支持多摄像头选择
+构建产物位于 `dist/` 目录。
 
-<img src="./assets/image-20230303145754324.jpeg" alt="image-20230303145754324"  />
+### 开发配置
+
+- **Electron 镜像**：项目已配置 `.npmrc` 使用 npmmirror 镜像
+- **IDE 终端**：若在 Cursor、VS Code 等 IDE 终端中 `pnpm dev` 报错，可改用系统终端，或执行 `ELECTRON_RUN_AS_NODE= pnpm dev`
+
+### 图标
+
+应用图标使用 `resources/icon.png`，建议尺寸 512×512 或 1024×1024。Mac 打包需要 `.icns` 格式，若 electron-builder 无法自动从 PNG 生成，可手动生成：
+
+```bash
+mkdir icon.iconset
+sips -z 16 16 resources/icon.png --out icon.iconset/icon_16x16.png
+sips -z 32 32 resources/icon.png --out icon.iconset/icon_16x16@2x.png
+sips -z 32 32 resources/icon.png --out icon.iconset/icon_32x32.png
+sips -z 64 64 resources/icon.png --out icon.iconset/icon_32x32@2x.png
+sips -z 128 128 resources/icon.png --out icon.iconset/icon_128x128.png
+sips -z 256 256 resources/icon.png --out icon.iconset/icon_128x128@2x.png
+sips -z 256 256 resources/icon.png --out icon.iconset/icon_256x256.png
+sips -z 512 512 resources/icon.png --out icon.iconset/icon_256x256@2x.png
+sips -z 512 512 resources/icon.png --out icon.iconset/icon_512x512.png
+sips -z 1024 1024 resources/icon.png --out icon.iconset/icon_512x512@2x.png
+iconutil -c icns icon.iconset -o build/icon.icns
+rm -rf icon.iconset
+```
+
+生成后将 `electron-builder.yml` 和 `electron-builder-mas.yml` 中的 `icon` 改为 `build/icon.icns`。
+
+### 常见问题
+
+- **编译失败**：检查 electron / electron-builder 镜像配置，参考 [后盾人文档库 - Electron](https://doc.houdunren.com/%E7%B3%BB%E7%BB%9F%E8%AF%BE%E7%A8%8B/electron/1%20%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86.html)
+- **Electron 未安装**：项目已配置 `pnpm.onlyBuiltDependencies`，首次 `pnpm install` 会自动下载 Electron 二进制
+

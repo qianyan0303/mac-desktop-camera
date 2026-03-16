@@ -2,15 +2,36 @@
 import { CameraFive, Setting as SettingICon } from '@icon-park/vue-next'
 import DropdownMenu from '@renderer/components/DropdownMenu.vue'
 import FullScreen from '@renderer/components/FullScreen.vue'
-// import useCamera from '@renderer/composables/useCamera'
 import { useConfigStore } from '@renderer/stores/useConfigStore'
+import { watch } from 'vue'
+import AspectRatioSelector from './AspectRatioSelector.vue'
 import ChangeFlipHorizontally from './ChangeFlipHorizontally.vue'
 import ChangeRounded from './ChangeRounded.vue'
-// const { openNewCamera } = useCamera()
+import PrivacyToggle from './PrivacyToggle.vue'
 const { config } = useConfigStore()
 
-//退出软件
-// const quit = () => window.api.quit()
+// windowWidth 存储主维度（16:9/1:1 为宽，9:16 为高）
+const onSizeChange = (val: number) => {
+  const ratio = config.aspectRatioMode === '1:1' ? 1 : config.aspectRatioMode === '9:16' ? 9 / 16 : 16 / 9
+  window.api.setWindowSize(val, ratio)
+}
+
+watch(
+  () => config.windowWidth,
+  (val) => onSizeChange(val),
+  { immediate: false }
+)
+
+watch(
+  () => [config.page, config.aspectRatioMode],
+  async ([page]) => {
+    if (page === 'camera') {
+      const { width, height } = await window.api.getWindowSize()
+      config.windowWidth = config.aspectRatioMode === '9:16' ? height : width
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
@@ -36,12 +57,32 @@ const { config } = useConfigStore()
       class="icon"
       @click="config.page = 'camera'"
     />
-    <!-- 圆角切换 -->
-    <ChangeRounded v-if="config.page == 'camera'" />
+    <!-- 比例选择 -->
+    <div v-if="config.page == 'camera'" class="aspect-ratio-selector">
+      <AspectRatioSelector />
+    </div>
+    <!-- 圆角切换（仅 1:1 时显示） -->
+    <ChangeRounded v-if="config.page == 'camera' && config.aspectRatioMode === '1:1'" />
     <!-- 画面镜像 -->
     <ChangeFlipHorizontally v-if="config.page == 'camera'" />
+    <!-- 隐私保护 -->
+    <PrivacyToggle v-if="config.page == 'camera'" />
     <!-- 全屏 -->
     <FullScreen v-if="['camera'].includes(config.page)" />
+    <!-- 窗口大小 -->
+    <div
+      v-if="config.page === 'camera'"
+      class="nodrag flex items-center gap-1 min-w-[80px] px-1"
+    >
+      <el-slider
+        v-model="config.windowWidth"
+        :min="150"
+        :max="960"
+        :step="30"
+        size="small"
+        class="window-size-slider"
+      />
+    </div>
     <!-- 快捷菜单 -->
     <DropdownMenu />
     <!-- <power theme="outline" size="20" class="icon" @click="quit" /> -->
@@ -68,5 +109,35 @@ const { config } = useConfigStore()
   :deep(.icon) {
     @apply opacity-100;
   }
+}
+.aspect-ratio-selector {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.group:hover .aspect-ratio-selector {
+  opacity: 1;
+}
+.bg-pink-600 .aspect-ratio-selector {
+  opacity: 1;
+}
+.window-size-slider {
+  :deep(.el-slider__runway) {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+  :deep(.el-slider__bar) {
+    background-color: #fff;
+  }
+  :deep(.el-slider__button) {
+    border-color: #fff;
+    background-color: #fff;
+  }
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.group:hover .window-size-slider {
+  opacity: 1;
+}
+.bg-pink-600 .window-size-slider {
+  opacity: 1;
 }
 </style>

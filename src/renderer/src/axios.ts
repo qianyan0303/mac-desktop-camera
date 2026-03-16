@@ -18,7 +18,6 @@ http.interceptors.response.use(
         message: error.response.data.message.replace(/\(.*?\)/, ''),
         type: 'error',
         duration: 3000,
-        center: false,
         grouping: true
       })
     }

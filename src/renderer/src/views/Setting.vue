@@ -1,11 +1,29 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { useConfigStore } from '@renderer/stores/useConfigStore'
 import packageJson from '../../../../package.json'
 
 const { config } = useConfigStore()
-const devices = await navigator.mediaDevices.enumerateDevices()
-const cameras = devices.filter((d) => {
-  return d.kind.includes('video')
+const cameras = ref<MediaDeviceInfo[]>([])
+const loading = ref(true)
+
+// 必须先请求摄像头权限，enumerateDevices 才能返回设备名称（否则 label 为空）
+async function loadCameras() {
+  loading.value = true
+  try {
+    // 先获取临时视频流以触发权限请求，这样 enumerateDevices 才能返回带 label 的设备列表
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+    stream.getTracks().forEach((track) => track.stop())
+  } catch {
+    // 用户拒绝权限时继续，此时 label 可能为空
+  }
+  const devices = await navigator.mediaDevices.enumerateDevices()
+  cameras.value = devices.filter((d) => d.kind === 'videoinput')
+  loading.value = false
+}
+
+onMounted(() => {
+  loadCameras()
 })
 </script>
 
@@ -21,11 +39,12 @@ const cameras = devices.filter((d) => {
           clearable
           filterable
           class="w-full"
+          :loading="loading"
         >
           <el-option
             v-for="(device, index) in cameras"
-            :key="index"
-            :label="device.label"
+            :key="device.deviceId"
+            :label="device.label || `摄像头 ${index + 1}`"
             :value="device.deviceId"
           >
           </el-option>

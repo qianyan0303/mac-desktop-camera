@@ -1,5 +1,15 @@
-import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
+
+const isDev = !app.isPackaged
+const watchWindowShortcuts = (win: BrowserWindow) => {
+  win.webContents.on('before-input-event', (_event, input) => {
+    if (input.type === 'keyDown' && isDev && input.code === 'F12') {
+      win.webContents.isDevToolsOpened()
+        ? win.webContents.closeDevTools()
+        : win.webContents.openDevTools()
+    }
+  })
+}
 import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
 // import autoUpdater from './autoUpdater'
@@ -12,8 +22,9 @@ function createWindow(): void {
   const mainWindow = new BrowserWindow({
     width: 720,
     height: 405,
-    minHeight: 300,
-    minWidth: 300,
+    // 84 为 9:16 时 150 对应的短边，保证各比例下都能保持
+    minHeight: 84,
+    minWidth: 84,
     alwaysOnTop: true,
     show: false,
     autoHideMenuBar: true,
@@ -28,7 +39,7 @@ function createWindow(): void {
       sandbox: false
     }
   })
-  if (is.dev) mainWindow.webContents.openDevTools()
+  if (isDev) mainWindow.webContents.openDevTools()
   mainWindow.setAspectRatio(16 / 9)
 
   // mainWindow.webContents.openDevTools()
@@ -46,7 +57,7 @@ function createWindow(): void {
 
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+  if (isDev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
@@ -63,13 +74,13 @@ function createWindow(): void {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+  if (process.platform === 'win32') app.setAppUserModelId('com.electron')
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
   // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
-    optimizer.watchWindowShortcuts(window)
+    watchWindowShortcuts(window)
   })
 
   createWindow()

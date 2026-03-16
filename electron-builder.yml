@@ -1,5 +1,5 @@
-appId: com.houdunren.camera
-productName: houdunren-camera
+appId: com.vibemirror.app
+productName: vibemirror
 directories:
   buildResources: build
 files:
@@ -13,7 +13,7 @@ asarUnpack:
   - resources/**
 afterSign: build/notarize.js
 win:
-  executableName: houdunren-camera
+  executableName: vibemirror
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -21,8 +21,7 @@ nsis:
   createDesktopShortcut: always
 mac:
   entitlementsInherit: build/entitlements.mac.plist
-  # 图标，看后盾人文档库 electron 章节有介绍生成方法
-  icon: build/icon.icns
+  icon: resources/icon.png
   target:
     - zip
   extendInfo:

@@ -10,8 +10,8 @@ const api = {
       callback(progress)
     })
   },
-  toggleRound: (opt: { aspectRatio: number; width: number; height: number }) => {
-    ipcRenderer.send('toggleRound', opt)
+  setAspectRatio: (opt: { aspectRatio: number }) => {
+    ipcRenderer.send('setAspectRatio', opt)
   },
   contextMenu: () => {
     ipcRenderer.send('contextMenu')
@@ -24,6 +24,11 @@ const api = {
   toggleFullscreen: () => {
     ipcRenderer.send('toggleFullscreen')
   },
+  // 获取窗口尺寸
+  getWindowSize: () => ipcRenderer.invoke('getWindowSize'),
+  // 设置窗口尺寸（size: 主维度, aspectRatio: 比例数值）
+  setWindowSize: (size: number, aspectRatio: number) =>
+    ipcRenderer.send('setWindowSize', size, aspectRatio),
   //打开新摄像头
   openNewCamera: () => {
     ipcRenderer.send('openNewWindow')

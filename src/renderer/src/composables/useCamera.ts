@@ -8,7 +8,7 @@ export default () => {
   const toggleFullscreen = () => {
     config.rounded = false
     isFullscreen.value = !isFullscreen.value
-    window.api.toggleRound({ aspectRatio: 0 })
+    window.api.setAspectRatio({ aspectRatio: 0 })
     window.api.toggleFullscreen()
   }
 

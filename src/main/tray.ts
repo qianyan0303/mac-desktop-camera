@@ -14,7 +14,7 @@ const createTray = () => {
     { type: 'separator' },
     { label: '问题反馈', click: () => shell.openExternal('https://www.houdunren.com') }
   ])
-  tray.setToolTip('向军大叔摄像头')
+  tray.setToolTip('vibemirror')
   tray.setContextMenu(contextMenu)
 }
 
