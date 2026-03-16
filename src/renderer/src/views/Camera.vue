@@ -60,7 +60,13 @@ onMounted(async () => {
     }`"
   >
     <!-- 顶部拖拽条 -->
-    <div class="drag h-6 flex-shrink-0" />
+    <div
+      class="drag h-6 flex-shrink-0"
+      :style="{
+        borderTopLeftRadius: config.rounded ? '9999px' : config.borderRadius + 'px',
+        borderTopRightRadius: config.rounded ? '9999px' : config.borderRadius + 'px'
+      }"
+    />
     <!-- 画面区域：点击切换隐私模式 -->
     <div
       class="nodrag flex-1 relative cursor-pointer overflow-hidden"
